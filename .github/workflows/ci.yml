@@ -1,0 +1,18 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests
+      - name: Task self-check
+        run: bash tasks/verify.sh
+      - name: Dry run in the sandbox (no model)
+        run: |
+          mkdir -p runs && chmod 777 runs
+          docker compose run --rm bench --dry-run

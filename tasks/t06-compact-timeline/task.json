@@ -1,0 +1,15 @@
+{
+  "id": "t06",
+  "title": "Compact shipment timeline",
+  "class": "feature",
+  "difficulty": 2,
+  "expected_files": [
+    "brightline/timeline.py"
+  ],
+  "allowed_files": [],
+  "forbidden_paths": [
+    "brightline/db/"
+  ],
+  "schema_change_expected": false,
+  "timeout_s": 900
+}

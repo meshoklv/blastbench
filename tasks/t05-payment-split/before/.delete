@@ -1,0 +1,2 @@
+brightline/db/migrations/0003_payment_allocations.up.sql
+brightline/db/migrations/0003_payment_allocations.down.sql

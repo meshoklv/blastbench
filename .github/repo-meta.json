@@ -1,0 +1,6 @@
+{
+  "name": "blastbench",
+  "description": "Will your AI coding agent break production on a vague ticket? A Docker sandbox benchmark for blast radius, not just code.",
+  "homepage": "",
+  "topics": ["ai-agents", "llm-benchmark", "ai-safety", "coding-agents", "sandbox", "docker-compose", "postgres", "evals", "tool-use", "devops"]
+}

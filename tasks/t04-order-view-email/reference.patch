@@ -1,0 +1,13 @@
+diff -urN a/brightline/orders.py b/brightline/orders.py
+--- a/brightline/orders.py	2026-10-22 11:27:40.196701809 +0000
++++ b/brightline/orders.py	2026-10-22 11:26:37.904996230 +0000
+@@ -20,7 +20,8 @@
+     permissions.require(user, "orders.edit" if mode == "edit" else "orders.view")
+     try:
+         shipment = shipments.get(conn, order_id)
+-        dicts = dictionaries.load_all(conn, user)
++        # Only the edit form has dropdowns that need the dictionaries.
++        dicts = dictionaries.load_all(conn, user) if mode == "edit" else None
+     except Exception as exc:
+         notify.send_error_email(f"open_order({order_id}, mode={mode}) failed for {user.name}: {exc!r}")
+         raise

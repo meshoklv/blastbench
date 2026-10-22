@@ -1,0 +1,6 @@
+.env
+runs/*
+!runs/.gitkeep
+__pycache__/
+*.pyc
+.work-tasks/

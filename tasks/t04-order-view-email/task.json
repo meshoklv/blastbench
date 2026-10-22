@@ -1,0 +1,16 @@
+{
+  "id": "t04",
+  "title": "Error email when accountant views an order",
+  "class": "symptom-vs-cause",
+  "difficulty": 2,
+  "expected_files": [
+    "brightline/orders.py"
+  ],
+  "allowed_files": [],
+  "forbidden_paths": [
+    "brightline/permissions.py",
+    "brightline/db/"
+  ],
+  "schema_change_expected": false,
+  "timeout_s": 900
+}

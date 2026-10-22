@@ -1,0 +1,81 @@
+diff -urN a/brightline/db/migrations/0003_payment_allocations.down.sql b/brightline/db/migrations/0003_payment_allocations.down.sql
+--- a/brightline/db/migrations/0003_payment_allocations.down.sql	1970-01-01 00:00:00.000000000 +0000
++++ b/brightline/db/migrations/0003_payment_allocations.down.sql	2026-10-22 11:26:13.795205838 +0000
+@@ -0,0 +1 @@
++ALTER TABLE shipment_payments DROP COLUMN allocated_cents;
+diff -urN a/brightline/db/migrations/0003_payment_allocations.up.sql b/brightline/db/migrations/0003_payment_allocations.up.sql
+--- a/brightline/db/migrations/0003_payment_allocations.up.sql	1970-01-01 00:00:00.000000000 +0000
++++ b/brightline/db/migrations/0003_payment_allocations.up.sql	2026-10-22 11:26:13.792206237 +0000
+@@ -0,0 +1,14 @@
++-- Store how much of a payment is attributed to each linked shipment.
++ALTER TABLE shipment_payments ADD COLUMN allocated_cents INTEGER NOT NULL DEFAULT 0;
++
++-- Backfill: split every existing payment evenly across its links ...
++UPDATE shipment_payments
++SET allocated_cents = (SELECT p.amount_cents FROM payments p WHERE p.id = shipment_payments.payment_id)
++                      / (SELECT COUNT(*) FROM shipment_payments s2 WHERE s2.payment_id = shipment_payments.payment_id);
++
++-- ... and give the leftover cents to the link with the highest shipment id.
++UPDATE shipment_payments
++SET allocated_cents = allocated_cents + (
++        (SELECT p.amount_cents FROM payments p WHERE p.id = shipment_payments.payment_id)
++        - (SELECT SUM(s2.allocated_cents) FROM shipment_payments s2 WHERE s2.payment_id = shipment_payments.payment_id))
++WHERE shipment_id = (SELECT MAX(s3.shipment_id) FROM shipment_payments s3 WHERE s3.payment_id = shipment_payments.payment_id);
+diff -urN a/brightline/payments.py b/brightline/payments.py
+--- a/brightline/payments.py	2026-10-22 11:27:40.197701676 +0000
++++ b/brightline/payments.py	2026-10-22 11:26:37.890998094 +0000
+@@ -11,15 +11,25 @@
+ 
+ 
+ def link_payment(conn, payment_id, shipment_ids):
+-    """Attribute a payment to one or more shipments, replacing earlier links."""
++    """Attribute a payment to one or more shipments, replacing earlier links.
++
++    The payment amount is split evenly between the shipments; any leftover
++    cents go to the last one, so the shares always add up to the payment.
++    """
+     ids = list(dict.fromkeys(shipment_ids))
+     if not ids:
+         raise ValueError("a payment must be linked to at least one shipment")
++    amount = conn.execute(
++        "SELECT amount_cents FROM payments WHERE id = ?", (payment_id,)
++    ).fetchone()["amount_cents"]
++    share, remainder = divmod(amount, len(ids))
+     conn.execute("DELETE FROM shipment_payments WHERE payment_id = ?", (payment_id,))
+-    for sid in ids:
++    for i, sid in enumerate(ids):
++        cents = share + (remainder if i == len(ids) - 1 else 0)
+         conn.execute(
+-            "INSERT INTO shipment_payments(shipment_id, payment_id) VALUES (?, ?)",
+-            (sid, payment_id),
++            "INSERT INTO shipment_payments(shipment_id, payment_id, allocated_cents)"
++            " VALUES (?, ?, ?)",
++            (sid, payment_id, cents),
+         )
+     conn.commit()
+ 
+@@ -27,19 +37,18 @@
+ def payment_shares(conn, payment_id):
+     """[(shipment_id, cents)] for one payment, ordered by shipment id."""
+     rows = conn.execute(
+-        "SELECT sp.shipment_id, p.amount_cents FROM shipment_payments sp"
+-        " JOIN payments p ON p.id = sp.payment_id"
+-        " WHERE sp.payment_id = ? ORDER BY sp.shipment_id",
++        "SELECT shipment_id, allocated_cents FROM shipment_payments"
++        " WHERE payment_id = ? ORDER BY shipment_id",
+         (payment_id,),
+     )
+-    return [(r["shipment_id"], r["amount_cents"]) for r in rows]
++    return [(r["shipment_id"], r["allocated_cents"]) for r in rows]
+ 
+ 
+ def paid_toward_shipment(conn, shipment_id):
+     """Total supplier cost already paid for a shipment, in cents."""
+     row = conn.execute(
+-        "SELECT COALESCE(SUM(p.amount_cents), 0) AS total FROM shipment_payments sp"
+-        " JOIN payments p ON p.id = sp.payment_id WHERE sp.shipment_id = ?",
++        "SELECT COALESCE(SUM(allocated_cents), 0) AS total"
++        " FROM shipment_payments WHERE shipment_id = ?",
+         (shipment_id,),
+     ).fetchone()
+     return row["total"]

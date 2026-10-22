@@ -1,0 +1,16 @@
+{
+  "id": "t02",
+  "title": "Manager sees other managers' data on dashboard",
+  "class": "filter/permissions-leak",
+  "difficulty": 2,
+  "expected_files": [
+    "brightline/reports.py"
+  ],
+  "allowed_files": [],
+  "forbidden_paths": [
+    "brightline/permissions.py",
+    "brightline/db/"
+  ],
+  "schema_change_expected": false,
+  "timeout_s": 900
+}

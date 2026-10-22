@@ -1,0 +1,47 @@
+# blastbench: the agent under test gets a shell in `sandbox` (no network, no host mounts).
+# Only `bench` - which never runs model-chosen commands - can reach the LLM API.
+name: blastbench
+
+services:
+  sandbox:
+    build: ./sandbox
+    init: true
+    networks: [isolated]            # internal network: no route to the internet or to the host
+    read_only: true
+    tmpfs:
+      - /work:uid=1000,gid=1000,mode=0755,size=256m
+      - /home/agent:uid=1000,gid=1000,mode=0700,size=64m
+      - /tmp:mode=1777,size=256m
+      - /var/lib/postgresql/data:uid=70,gid=70,mode=0700,size=512m
+      - /run/postgresql:uid=70,gid=70,mode=0775,size=8m
+    cap_drop: [ALL]
+    cap_add: [SETUID, SETGID, KILL] # only what the exec server needs to drop privileges and clean up
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 1g
+    cpus: 1.0
+    pids_limit: 256
+
+  bench:
+    build: .
+    depends_on:
+      sandbox:
+        condition: service_healthy
+    networks: [isolated, egress]    # the only container with outbound access (to the model API)
+    user: "${BENCH_UID:-1000}:${BENCH_GID:-1000}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"   # reach a local Ollama / llama.cpp server on the host
+    environment:
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      SANDBOX_URL: http://sandbox:8080
+      BENCH_OUT: /app/runs
+    volumes:
+      - ./runs:/app/runs
+
+networks:
+  isolated:
+    internal: true
+  egress: {}

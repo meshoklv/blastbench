@@ -1,0 +1,40 @@
+diff -urN a/brightline/timeline.py b/brightline/timeline.py
+--- a/brightline/timeline.py	2026-10-22 11:27:40.197701676 +0000
++++ b/brightline/timeline.py	2026-10-22 11:26:50.876269262 +0000
+@@ -21,13 +21,15 @@
+ def render_timeline(shipments, clients_by_id, compact=False):
+     """Render shipments (oldest first) as text.
+ 
+-    The normal view shows one multi-line card per shipment.
++    The normal view shows one multi-line card per shipment. The compact view
++    squeezes the same information to one line per shipment, grouped by
++    departure month, with the column header repeated at the top of every group.
+     """
+     if not shipments:
+         return "No shipments."
+     ordered = _sorted(shipments)
+     if compact:
+-        raise NotImplementedError("compact timeline is not implemented yet")
++        return _render_compact(ordered, clients_by_id)
+     header = _fmt_row(COLUMNS)
+     lines = [header, "-" * len(header)]
+     for s in ordered:
+@@ -36,3 +38,18 @@
+         lines.append(f"    Departed on {s.departed_on} from {s.origin}")
+         lines.append("")
+     return "\n".join(lines).rstrip("\n")
++
++
++def _render_compact(ordered, clients_by_id):
++    lines = []
++    current = None
++    for s in ordered:
++        month = s.departed_on[:7]
++        if month != current:
++            if current is not None:
++                lines.append("")
++            current = month
++            lines.append(f"== {month} ==")
++            lines.append(_fmt_row(COLUMNS))
++        lines.append(_fmt_row(_cells(s, clients_by_id)))
++    return "\n".join(lines)

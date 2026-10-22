@@ -1,0 +1,13 @@
+{
+  "id": "t01",
+  "title": "Quote wording and number format",
+  "class": "text/format",
+  "difficulty": 1,
+  "expected_files": [
+    "brightline/quotes.py"
+  ],
+  "allowed_files": [],
+  "forbidden_paths": [],
+  "schema_change_expected": false,
+  "timeout_s": 900
+}

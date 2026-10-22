@@ -1,0 +1,16 @@
+{
+  "id": "t03",
+  "title": "Client list ordering is unstable",
+  "class": "ordering",
+  "difficulty": 1,
+  "expected_files": [
+    "brightline/clients/registry.py"
+  ],
+  "allowed_files": [],
+  "forbidden_paths": [
+    "brightline/reports.py",
+    "brightline/db/"
+  ],
+  "schema_change_expected": false,
+  "timeout_s": 900
+}

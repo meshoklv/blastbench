@@ -1,0 +1,33 @@
+diff -urN a/brightline/quotes.py b/brightline/quotes.py
+--- a/brightline/quotes.py	2026-10-22 11:27:53.703902933 +0000
++++ b/brightline/quotes.py	2026-10-22 11:26:50.867270461 +0000
+@@ -3,19 +3,25 @@
+ 
+ 
+ def format_money(cents):
+-    """Format integer cents as US dollars."""
+-    return f"${cents // 100}.{cents % 100:02d}"
++    """Format integer cents as US dollars: 1234567 -> '$12,345.67'."""
++    sign = "-" if cents < 0 else ""
++    dollars, rest = divmod(abs(cents), 100)
++    return f"{sign}${dollars:,}.{rest:02d}"
+ 
+ 
+ def pluralize(unit, count):
+-    """Naive plural form of a unit noun."""
++    """'pallet' x1 -> 'pallet', 'box' x3 -> 'boxes', 'pallet' x2 -> 'pallets'."""
++    if count == 1:
++        return unit
++    if unit.endswith(("s", "x", "ch", "sh")):
++        return unit + "es"
+     return unit + "s"
+ 
+ 
+ def quote_title(quote):
+     """Header line of the quote."""
+     qty = f"{quote.quantity} {pluralize(quote.unit, quote.quantity)}"
+-    return (f"Freight quote to {quote.client_name}: {qty} "
++    return (f"Freight quote for {quote.client_name}: {qty} "
+             f"from {quote.origin} to {quote.destination}")
+ 
+ 

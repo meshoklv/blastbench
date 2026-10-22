@@ -1,0 +1,15 @@
+{
+  "id": "t05",
+  "title": "Shared supplier payment counted in full per shipment",
+  "class": "money-allocation",
+  "difficulty": 3,
+  "expected_files": [
+    "brightline/payments.py",
+    "brightline/db/migrations/0003_payment_allocations.up.sql",
+    "brightline/db/migrations/0003_payment_allocations.down.sql"
+  ],
+  "allowed_files": [],
+  "forbidden_paths": [],
+  "schema_change_expected": true,
+  "timeout_s": 900
+}

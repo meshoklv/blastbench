@@ -1,0 +1,21 @@
+diff -urN a/brightline/clients/registry.py b/brightline/clients/registry.py
+--- a/brightline/clients/registry.py	2026-10-22 11:28:04.113516515 +0000
++++ b/brightline/clients/registry.py	2026-10-22 11:26:37.878999691 +0000
+@@ -29,11 +29,15 @@
+ 
+ 
+ def list_clients(conn, manager_id=None):
+-    """Clients in registration order: whoever was added first comes first."""
++    """Clients in registration order: whoever was added first comes first.
++
++    Several clients are often registered on the same day, so the date alone does
++    not give a stable order; the client id breaks ties (same rule as the reports).
++    """
+     sql = "SELECT * FROM clients"
+     params = []
+     if manager_id is not None:
+         sql += " WHERE manager_id = ?"
+         params.append(manager_id)
+-    sql += " ORDER BY created_at"
++    sql += " ORDER BY created_at, id"
+     return [_row_to_client(r) for r in conn.execute(sql, params)]
