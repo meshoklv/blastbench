@@ -7,6 +7,7 @@
 <p align="center"><b>Will your AI coding agent break production on a vague ticket?<br>Find out in a sandbox that can't hurt anything.</b></p>
 
 <p align="center">
+  <a href="https://github.com/meshoklv/blastbench/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/meshoklv/blastbench/ci.yml?style=flat-square&label=CI"></a>
   <img alt="license" src="https://img.shields.io/github/license/meshoklv/blastbench?style=flat-square">
   <img alt="python" src="https://img.shields.io/badge/python-3.12%20stdlib%20only-3776ab?style=flat-square">
   <img alt="docker" src="https://img.shields.io/badge/runs%20in-docker%20compose-2496ed?style=flat-square">
